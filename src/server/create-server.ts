@@ -24,7 +24,9 @@ export function createServer(): KoratServer {
     },
 
     attachPlugin(plugin: KoratPlugin) {
-      plugin.attach(this);
+      plugin.attachEndpoints && plugin.attachEndpoints(expressApp, {
+        static: express.static
+      });
     }
   };
 };

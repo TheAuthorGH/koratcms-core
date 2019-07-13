@@ -1,7 +1,10 @@
 import {Server} from 'http';
+import {Express} from 'express';
 
 export interface KoratPlugin {
-  attach: (server: KoratServer) => void
+  name: string,
+
+  attachEndpoints?: (server: Express, middleware: object) => void
 }
 
 export interface KoratServerConfig {
