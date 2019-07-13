@@ -10,7 +10,7 @@ interface KoratServerConfig {
 }
 
 interface KoratServer {
-  router: any,
+  server: Server | null,
 
   start: (serverConfig: KoratServerConfig) => Promise<void>,
   stop: () => Promise<void>,
@@ -18,23 +18,21 @@ interface KoratServer {
 }
 
 const createServer = (): KoratServer => {
-  const router = express();
-
-  let server: Server;
+  const expressApp = express();
 
   return {
-    router,
+    server: null,
 
     async start(serverConfig: KoratServerConfig) {
-      server = await new Promise((resolve, reject) => {
-        router
+      this.server = await new Promise((resolve, reject) => {
+        expressApp
           .listen(serverConfig.port, resolve)
           .on('error', reject);
       });
     },
     async stop() {
       await new Promise((resolve, reject) => {
-        server.close((err) => {
+        this.server && this.server.close((err) => {
           if(err) reject(err);
           else resolve();
         });
