@@ -1,23 +1,7 @@
 import express from 'express';
-import {Server} from 'http';
+import { KoratServer, KoratServerConfig, KoratPlugin } from './types';
 
-interface KoratPlugin {
-  attach: (server: KoratServer) => void
-}
-
-interface KoratServerConfig {
-  port: number
-}
-
-interface KoratServer {
-  server: Server | null,
-
-  start: (serverConfig: KoratServerConfig) => Promise<void>,
-  stop: () => Promise<void>,
-  attachPlugin: (plugin: KoratPlugin) => void
-}
-
-const createServer = (): KoratServer => {
+export function createServer(): KoratServer {
   const expressApp = express();
 
   return {
@@ -44,5 +28,3 @@ const createServer = (): KoratServer => {
     }
   };
 };
-
-export default {createServer};
