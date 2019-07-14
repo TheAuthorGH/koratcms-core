@@ -3,9 +3,16 @@ import {Server} from 'http';
 import {KoratCore} from './core';
 
 import express from 'express';
+import mongoose from 'mongoose';
+
+mongoose.Promise = global.Promise;
+mongoose.set('useNewUrlParser', true);
+mongoose.set('useFindAndModify', false);
+mongoose.set('useCreateIndex', true);
 
 export interface KoratServerConfig {
-  port: number
+  port: number,
+  dbUrl: string,
 }
 
 export interface KoratServer {
@@ -22,6 +29,7 @@ export function createServer(core: KoratCore): KoratServer {
     expressApp: express(),
 
     async start(serverConfig) {
+      await mongoose.connect(`mongodb://${serverConfig.dbUrl}`);
       this.httpServer = await new Promise((resolve, reject) => {
         this.expressApp
           .listen(serverConfig.port, resolve)
@@ -30,12 +38,13 @@ export function createServer(core: KoratCore): KoratServer {
     },
 
     async stop() {
+      await mongoose.disconnect();
       await new Promise((resolve, reject) => {
         this.httpServer && this.httpServer.close((err) => {
           if(err) reject(err);
           else resolve();
         });
       });
-    }
+    },
   }
 }
