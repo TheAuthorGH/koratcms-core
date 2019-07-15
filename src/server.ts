@@ -18,15 +18,20 @@ export interface KoratServerConfig {
 export interface KoratServer {
   httpServer: Server | null,
   expressApp: Express,
+  middleware: Record<string, Function>,
 
   start: (serverConfig: KoratServerConfig) => Promise<void>,
   stop: () => Promise<void>,
+  addMiddleware: (key: string, middleware: Function) => void,
 }
 
 export function createServer(core: KoratCore): KoratServer {
   return {
     httpServer: null,
     expressApp: express(),
+    middleware: {
+      static: express.static
+    },
 
     async start(serverConfig) {
       await mongoose.connect(`mongodb://${serverConfig.dbUrl}`);
@@ -46,5 +51,9 @@ export function createServer(core: KoratCore): KoratServer {
         });
       });
     },
+
+    addMiddleware(key, middleware) {
+      this.middleware[key] = middleware;
+    }
   }
 }

@@ -21,7 +21,7 @@ export function createPluginManager(core: KoratCore): KoratPluginManager {
     attachPlugin(plugin) {
       this.attachedPlugins.add(plugin.id);
 
-      plugin.attachEndpoints && plugin.attachEndpoints.call(core, core.server.expressApp, {});
+      plugin.attachEndpoints && plugin.attachEndpoints.call(core, core.server.expressApp, core.server.middleware);
     }
   };
 }
