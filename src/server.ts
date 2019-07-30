@@ -1,9 +1,7 @@
-import {Express} from 'express';
 import {Server} from 'http';
+import express, {Express} from 'express';
+import mongoose, {Connection} from 'mongoose';
 import {KoratCore} from './core';
-
-import express from 'express';
-import mongoose from 'mongoose';
 
 mongoose.Promise = global.Promise;
 mongoose.set('useNewUrlParser', true);
@@ -17,6 +15,7 @@ export interface KoratServerConfig {
 
 export interface KoratServer {
   httpServer: Server | null,
+  mongooseConnection: Connection | null
   expressApp: Express,
   middleware: Record<string, Function>,
 
@@ -28,13 +27,14 @@ export interface KoratServer {
 export function createServer(core: KoratCore): KoratServer {
   return {
     httpServer: null,
+    mongooseConnection: null,
     expressApp: express(),
     middleware: {
       static: express.static
     },
 
     async start(serverConfig) {
-      await mongoose.connect(`mongodb://${serverConfig.dbUrl}`);
+      this.mongooseConnection = await mongoose.createConnection(`mongodb://${serverConfig.dbUrl}`);
       this.httpServer = await new Promise((resolve, reject) => {
         this.expressApp
           .listen(serverConfig.port, resolve)
@@ -43,7 +43,7 @@ export function createServer(core: KoratCore): KoratServer {
     },
 
     async stop() {
-      await mongoose.disconnect();
+      this.mongooseConnection && await this.mongooseConnection.close();
       await new Promise((resolve, reject) => {
         this.httpServer && this.httpServer.close((err) => {
           if(err) reject(err);
