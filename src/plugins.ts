@@ -5,7 +5,7 @@ export interface KoratPlugin {
   id: string,
   displayName: string,
 
-  attachEndpoints?: (server: Express, middleware: object) => void
+  attachEndpoints?: (server: Express, middleware: object) => void,
 }
 
 export interface KoratPluginManager {

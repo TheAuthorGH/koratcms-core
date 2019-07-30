@@ -15,7 +15,7 @@ export interface KoratServerConfig {
 
 export interface KoratServer {
   httpServer: Server | null,
-  mongooseConnection: Connection | null
+  mongooseConnection: Connection | null,
   expressApp: Express,
   middleware: Record<string, Function>,
 

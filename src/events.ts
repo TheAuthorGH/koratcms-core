@@ -1,15 +1,15 @@
 import {KoratCore} from './core';
 
 export interface KoratEventManager {
-  listeners: Record<string, Set<(event?: any) => void>>
-  on: (eventKey: string, handler: (event?: any) => void) => void,
+  listeners: Record<string, Set<(event?: any) => void>>,
+  listen: (eventKey: string, handler: (event?: any) => void) => void,
   trigger: (eventKey: string, event?: any) => void,
 }
 
 export function createEventManager(core: KoratCore): KoratEventManager {
   return {
     listeners: {},
-    on(eventKey, handler) {
+    listen(eventKey, handler) {
       if(!this.listeners[eventKey])
         this.listeners[eventKey] = new Set();
       this.listeners[eventKey].add(handler);

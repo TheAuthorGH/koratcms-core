@@ -3,7 +3,7 @@ import {Schema, Model, Document} from "mongoose";
 
 export interface KoratDatabaseManager {
   createModel: <T extends Document> (name: string, schema: Schema) => Model<T>,
-  getModel: <T extends Document> (name: string) => Model<T>
+  getModel: <T extends Document> (name: string) => Model<T>,
 }
 
 export function createDatabaseManager(core: KoratCore): KoratDatabaseManager {
