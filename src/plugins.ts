@@ -15,13 +15,15 @@ export interface KoratPluginManager {
 }
 
 export function createPluginManager(core: KoratCore): KoratPluginManager {
+  const {server} = core;
+
   return {
     attachedPlugins: new Set(),
 
     attachPlugin(plugin) {
       this.attachedPlugins.add(plugin.id);
 
-      plugin.attachEndpoints && plugin.attachEndpoints.call(core, core.server.expressApp, core.server.middleware);
+      plugin.attachEndpoints && plugin.attachEndpoints.call(core, server.expressApp, server.middleware);
     }
   };
 }

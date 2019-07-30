@@ -14,6 +14,7 @@ export interface KoratServerConfig {
 }
 
 export interface KoratServer {
+  running: boolean,
   httpServer: Server | null,
   mongooseConnection: Connection | null,
   expressApp: Express,
@@ -25,7 +26,10 @@ export interface KoratServer {
 }
 
 export function createServer(core: KoratCore): KoratServer {
+  const {events} = core;
+
   return {
+    running: false,
     httpServer: null,
     mongooseConnection: null,
     expressApp: express(),
@@ -38,22 +42,27 @@ export function createServer(core: KoratCore): KoratServer {
       this.httpServer = await new Promise((resolve, reject) => {
         this.expressApp
           .listen(serverConfig.port, resolve)
-          .on('error', reject);
+          .on('error', (error) => {
+            reject(error);
+            this.running = false;
+          });
       });
 
-      core.events.trigger('server-started');
+      this.running = true;
+      events.trigger('server-started');
     },
 
     async stop() {
       this.mongooseConnection && await this.mongooseConnection.close();
       await new Promise((resolve, reject) => {
         this.httpServer && this.httpServer.close((err) => {
-          if(err) reject(err);
+          if (err) reject(err);
           else resolve();
         });
       });
 
-      core.events.trigger('server-stopped');
+      this.running = false;
+      events.trigger('server-stopped');
     },
 
     addMiddleware(key, middleware) {
