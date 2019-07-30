@@ -9,16 +9,18 @@ export interface KoratDatabaseManager {
 export function createDatabaseManager(core: KoratCore): KoratDatabaseManager {
   return {
     createModel(name, schema) {
-      if(!core.server.mongooseConnection)
+      const {mongooseConnection} = core.server;
+      if(!mongooseConnection)
         throw Error('No mongoose database connection available.');
 
-      return core.server.mongooseConnection.model(name, schema);
+      return mongooseConnection.model(name, schema);
     },
     getModel(name) {
-      if(!core.server.mongooseConnection)
+      const {mongooseConnection} = core.server;
+      if(!mongooseConnection)
         throw Error('No mongoose database connection available.');
 
-      return core.server.mongooseConnection.model(name);
+      return mongooseConnection.model(name);
     }
   };
 }
