@@ -40,6 +40,8 @@ export function createServer(core: KoratCore): KoratServer {
           .listen(serverConfig.port, resolve)
           .on('error', reject);
       });
+
+      core.events.trigger('server-started');
     },
 
     async stop() {
@@ -50,6 +52,8 @@ export function createServer(core: KoratCore): KoratServer {
           else resolve();
         });
       });
+
+      core.events.trigger('server-stopped');
     },
 
     addMiddleware(key, middleware) {
