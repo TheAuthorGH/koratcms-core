@@ -38,6 +38,8 @@ export function createServer(core: KoratCore): KoratServer {
     },
 
     async start(serverConfig) {
+      events.trigger('server-starting');
+
       this.mongooseConnection = await mongoose.createConnection(`mongodb://${serverConfig.dbUrl}`);
       this.httpServer = await new Promise((resolve, reject) => {
         this.expressApp
@@ -53,6 +55,8 @@ export function createServer(core: KoratCore): KoratServer {
     },
 
     async stop() {
+      events.trigger('server-stopping');
+
       this.mongooseConnection && await this.mongooseConnection.close();
       await new Promise((resolve, reject) => {
         this.httpServer && this.httpServer.close((err) => {

@@ -2,12 +2,17 @@ import {Schema, Document} from 'mongoose';
 import {KoratCore} from './core';
 
 export interface KoratConfig {
-  values: Record<string, string>,
-
+  getEntry: (key: string) => void,
+  addEntry: (key: string, entry?: KoratConfigEntry) => void,
+  entryExists: (key: string) => boolean,
   getValue: (key: string) => any,
   setValue: (key: string, value: any) => void,
-  saveValues: () => Promise<void>,
-  loadValues: () => Promise<void>,
+  saveEntries: () => Promise<void>,
+  loadEntries: () => Promise<void>,
+}
+
+export interface KoratConfigEntry {
+  value?: any,
 }
 
 interface ConfigDocument extends Document {
@@ -15,42 +20,62 @@ interface ConfigDocument extends Document {
   value: any
 }
 
+const configSchema = new Schema({
+  key: {type: String, required: true, unique: true},
+  value: Object,
+});
+
 export function createConfig(core: KoratCore): KoratConfig {
   const {databaseManager, events} = core;
 
-  const configSchema = new Schema({
-    key: {type: String, required: true, unique: true},
-    value: Object,
-  });
-
   databaseManager.createModel('Config', configSchema);
+  events.listen('server-started', () => core.config.loadEntries());
+  events.listen('server-stopping', () => core.config.saveEntries());
+
+  const entries: Record<string, KoratConfigEntry> = {};
 
   return {
-    values: {},
+    getEntry(key) {
+      return entries[key];
+    },
+
+    addEntry(key, entry = {}) {
+      if (this.entryExists(key))
+        throw new Error(`Config entry with key ${key} already exists.`);
+      entries[key] = entry || {};
+    },
+
+    entryExists(key) {
+      return key in entries;
+    },
 
     getValue(key) {
-      return this.values[key];
+      return entries[key] && entries[key].value;
     },
 
     setValue(key, value) {
-      this.values[key] = value;
+      if (!this.entryExists(key))
+        throw new Error(`Config entry with key ${key} does not exist.`);
+      entries[key].value = value;
     },
 
-    async saveValues() {
+    async saveEntries() {
       const ConfigModel = databaseManager.getModel<ConfigDocument>('Config');
 
       await ConfigModel.deleteMany({});
-      await ConfigModel.insertMany(Object.keys(this.values).map(key => ({
+      await ConfigModel.insertMany(Object.keys(entries).map(key => ({
         key,
         value: this.getValue(key)
       })));
     },
 
-    async loadValues() {
+    async loadEntries() {
       const ConfigModel = databaseManager.getModel<ConfigDocument>('Config');
 
       for (let entry of await ConfigModel.find()) {
-        this.values[entry.key] = entry.value;
+        this.addEntry(entry.key, {
+          value: entry.value
+        })
       }
     }
   };
