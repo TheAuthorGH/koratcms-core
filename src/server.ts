@@ -22,11 +22,14 @@ export interface KoratServer {
 
   start: (serverConfig: KoratServerConfig) => Promise<void>,
   stop: () => Promise<void>,
+  afterStart: (handler: () => Promise<void>) => void,
+  beforeStop: (handler: () => Promise<void>) => void,
   addMiddleware: (key: string, middleware: Function) => void,
 }
 
 export function createServer(core: KoratCore): KoratServer {
-  const {events} = core;
+  const afterStartHandlers: (() => Promise<void>)[] = [];
+  const beforeStopHandlers: (() => Promise<void>)[] = [];
 
   return {
     running: false,
@@ -38,8 +41,6 @@ export function createServer(core: KoratCore): KoratServer {
     },
 
     async start(serverConfig) {
-      events.trigger('server-starting');
-
       this.mongooseConnection = await mongoose.createConnection(`mongodb://${serverConfig.dbUrl}`);
       this.httpServer = await new Promise((resolve, reject) => {
         this.expressApp
@@ -51,11 +52,11 @@ export function createServer(core: KoratCore): KoratServer {
       });
 
       this.running = true;
-      events.trigger('server-started');
+      await Promise.all(afterStartHandlers.map(handler => handler()));
     },
 
     async stop() {
-      events.trigger('server-stopping');
+      await Promise.all(beforeStopHandlers.map(handler => handler()));
 
       this.mongooseConnection && await this.mongooseConnection.close();
       await new Promise((resolve, reject) => {
@@ -66,7 +67,14 @@ export function createServer(core: KoratCore): KoratServer {
       });
 
       this.running = false;
-      events.trigger('server-stopped');
+    },
+
+    afterStart(handler) {
+      afterStartHandlers.push(handler);
+    },
+
+    beforeStop(handler) {
+      beforeStopHandlers.push(handler);
     },
 
     addMiddleware(key, middleware) {

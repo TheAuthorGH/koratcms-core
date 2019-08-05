@@ -1,5 +1,6 @@
 import {Express} from 'express';
 import {KoratCore} from './core';
+import {createValue} from './data';
 
 export interface KoratPlugin {
   id: string,
@@ -21,30 +22,27 @@ export interface KoratPluginManager {
 }
 
 export function createPluginManager(core: KoratCore): KoratPluginManager {
-  const {server, config, events} = core;
+  const {server, config} = core;
 
   return {
     attachedPlugins: new Set(),
 
     async attachPlugin(plugin) {
       if (!server.running) {
-        events.listen('server-started', () => this.attachPlugin(plugin));
+        server.afterStart(() => this.attachPlugin(plugin));
         return;
       }
 
       this.attachedPlugins.add(plugin.id);
 
       if (plugin.config) {
-        for (let key of Object.keys(plugin.config)) {
-          const configItem = plugin.config[key];
+        for (let [key, configItem] of Object.entries(plugin.config)) {
           key = `${plugin.id}.${key}`;
 
           if (config.entryExists(key)) {
             // TODO keep old value, merge new data.
           } else {
-            config.addEntry(key, {
-              value: configItem.initialValue,
-            });
+            config.addEntry(key, createValue(configItem.initialValue));
           }
         }
 
