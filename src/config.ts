@@ -1,6 +1,7 @@
 import {Schema, Document} from 'mongoose';
 import {KoratCore} from './core';
 import {KoratValue, KoratValueConstraints, createValue} from './data';
+import {create} from "domain";
 
 export interface KoratConfig {
   getEntry: (key: string) => KoratValue,
@@ -35,17 +36,19 @@ export function createConfig(core: KoratCore): KoratConfig {
     await core.config.saveEntries();
   });
 
-  const entries: Record<string, KoratValue> = {};
+  const entries = new Map<string, KoratValue>();
 
   return {
     getEntry(key) {
-      return entries[key];
+      if (!entries.has(key))
+        throw new Error(`Config entry with key ${key} does not exist.`);
+      return <KoratValue>entries.get(key);
     },
 
     addEntry(key, value) {
       if (this.entryExists(key))
         throw new Error(`Config entry with key ${key} already exists.`);
-      entries[key] = value || createValue();
+      entries.set(key, value || createValue());
     },
 
     entryExists(key) {
@@ -53,17 +56,16 @@ export function createConfig(core: KoratCore): KoratConfig {
     },
 
     getValue(key) {
-      return entries[key] && entries[key].value;
+      const entry = entries.get(key);
+      return entry && entry.value;
     },
 
     setValue(key, value) {
-      if (!this.entryExists(key))
-        throw new Error(`Config entry with key ${key} does not exist.`);
-      entries[key].value = value;
+      this.getEntry(key).value = value;
     },
 
     async saveEntries() {
-      const entriesToSave = Object.entries(entries).map(([key, entry]) => ({
+      const entriesToSave = Array.from(entries).map(([key, entry]) => ({
         key,
         value: entry.value,
         constraints: entry.constraints
