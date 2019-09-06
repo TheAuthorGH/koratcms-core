@@ -1,7 +1,6 @@
 import {Schema, Document} from 'mongoose';
 import {KoratCore} from './core';
 import {KoratValue, KoratValueConstraints, createValue} from './data';
-import {create} from "domain";
 
 export interface KoratConfig {
   getEntry: (key: string) => KoratValue,
