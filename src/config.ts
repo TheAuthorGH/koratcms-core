@@ -28,7 +28,7 @@ export function createConfig(core: KoratCore): KoratConfig {
   const {server} = core;
 
   server.afterStart(async () => {
-    server.mongooseConnection && server.mongooseConnection.model('Config', configSchema);
+    server.mongooseConnection!.model('Config', configSchema);
     await core.config.loadEntries();
   });
   server.beforeStop(async () => {
@@ -70,7 +70,7 @@ export function createConfig(core: KoratCore): KoratConfig {
         constraints: entry.constraints
       }));
 
-      const ConfigModel = server.mongooseConnection && server.mongooseConnection.model<ConfigDocument>('Config');
+      const ConfigModel = server.mongooseConnection!.model<ConfigDocument>('Config');
       if (!ConfigModel) throw new Error();
 
       await ConfigModel.deleteMany({});
@@ -78,7 +78,7 @@ export function createConfig(core: KoratCore): KoratConfig {
     },
 
     async loadEntries() {
-      const ConfigModel = server.mongooseConnection && server.mongooseConnection.model<ConfigDocument>('Config');
+      const ConfigModel = server.mongooseConnection!.model<ConfigDocument>('Config');
       if (!ConfigModel) throw new Error();
 
       for (let entry of await ConfigModel.find()) {

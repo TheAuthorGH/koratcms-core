@@ -59,8 +59,8 @@ export function createServer(core: KoratCore): KoratServer {
       await Promise.all(beforeStopHandlers.map(handler => handler()));
 
       this.mongooseConnection && await this.mongooseConnection.close();
-      await new Promise((resolve, reject) => {
-        this.httpServer && this.httpServer.close((err) => {
+      this.httpServer && await new Promise((resolve, reject) => {
+        this.httpServer!.close((err) => {
           if (err) reject(err);
           else resolve();
         });
