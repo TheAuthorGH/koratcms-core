@@ -11,7 +11,6 @@ export enum KoratValueType {
 
 export interface KoratValueConstraints {
   type: KoratValueType,
-  required?: boolean,
   maxLength?: number
 }
 
