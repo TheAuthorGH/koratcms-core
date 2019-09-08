@@ -42,13 +42,13 @@ export function createConfig(core: KoratCore): KoratConfig {
   return {
     getEntry(key) {
       if (!entries.has(key))
-        throw new Error(`Config entry with key ${key} does not exist.`);
+        throw new Error(`Config entry with key '${key}' does not exist.`);
       return <KoratValue>entries.get(key);
     },
 
     addEntry(key, value) {
       if (this.entryExists(key))
-        throw new Error(`Config entry with key ${key} already exists.`);
+        throw new Error(`Config entry with key '${key}' already exists.`);
       entries.set(key, value || createValue());
     },
 
