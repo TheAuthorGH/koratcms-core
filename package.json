@@ -12,7 +12,8 @@
   "license": "GPL-3.0",
   "files": [
     "/dist",
-    "src"
+    "src",
+    "tsconfig.json"
   ],
   "dependencies": {
     "@types/express": "^4.17.0",
