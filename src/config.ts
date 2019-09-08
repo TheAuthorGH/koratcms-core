@@ -1,4 +1,4 @@
-import {Schema, Document} from 'mongoose';
+import {Schema, Document, Model} from 'mongoose';
 import {KoratCore} from './core';
 import {KoratValue, KoratValueConstraints, createValue} from './data';
 
@@ -27,8 +27,10 @@ const configSchema = new Schema({
 export function createConfig(core: KoratCore): KoratConfig {
   const {server} = core;
 
+  let ConfigModel: Model<ConfigDocument>;
+
   server.afterStart(async () => {
-    server.mongooseConnection!.model('Config', configSchema);
+    ConfigModel = server.mongooseConnection!.model<ConfigDocument>('Config', configSchema);
     await core.config.loadEntries();
   });
   server.beforeStop(async () => {
@@ -70,17 +72,11 @@ export function createConfig(core: KoratCore): KoratConfig {
         constraints: entry.constraints
       }));
 
-      const ConfigModel = server.mongooseConnection!.model<ConfigDocument>('Config');
-      if (!ConfigModel) throw new Error();
-
       await ConfigModel.deleteMany({});
       await ConfigModel.insertMany(entriesToSave);
     },
 
     async loadEntries() {
-      const ConfigModel = server.mongooseConnection!.model<ConfigDocument>('Config');
-      if (!ConfigModel) throw new Error();
-
       for (let entry of await ConfigModel.find()) {
         this.addEntry(entry.key, createValue(entry.value, <KoratValueConstraints>entry.constraints));
       }
