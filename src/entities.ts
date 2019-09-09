@@ -35,19 +35,11 @@ export function createEntityManager(core: KoratCore): KoratEntityManager {
 
   return {
     getEntityTypeByKey(key) {
-      for (const entityType of entityTypes) {
-        if (entityType.key === key)
-          return entityType;
-      }
-      return null;
+      return entityTypes.find(entityType => entityType.key === key) || null;
     },
 
     entityTypeExists(key) {
-      for (const entityType of entityTypes) {
-        if (entityType.key === key)
-          return true;
-      }
-      return false;
+      return entityTypes.some(entityType => entityType.key === key);
     },
 
     getEntityById(type, id) {
